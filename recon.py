@@ -1,7 +1,7 @@
 import nmap
 
 # Target IP address
-target_ip = "192.168.1.10"
+target_ip = input ("Input Target IP:")
 
 # Create a PortScanner object
 nm = nmap.PortScanner()
