@@ -1,6 +1,8 @@
 import tkinter as tk
+from tkinter import ttk
 import nmap
 import os
+import threading
 
 def scan_target():
     target_ip = entry_ip.get()
@@ -17,25 +19,26 @@ def scan_target():
     for port in nm[target_ip]['tcp']:
         output_text.insert(tk.END, f"Port: {port} - State: {nm[target_ip]['tcp'][port]['state']} - Service: {nm[target_ip]['tcp'][port]['name']}\n")
 
-    whois_output = os.popen(f"whois {target_ip}").read()
     output_text.insert(tk.END, "\nWhois Information:\n")
-    output_text.insert(tk.END, whois_output)
+    output_text.insert(tk.END, os.popen(f"whois {target_ip}").read())
 
-    dig_output = os.popen(f"dig {target_ip}").read()
     output_text.insert(tk.END, "\nDNS Information:\n")
-    output_text.insert(tk.END, dig_output)
+    output_text.insert(tk.END, os.popen(f"dig {target_ip}").read())
 
-    sublist3r_output = os.popen(f"sublist3r -d {target_ip}").read()
     output_text.insert(tk.END, "\nSubdomains:\n")
-    output_text.insert(tk.END, sublist3r_output)
+    output_text.insert(tk.END, os.popen(f"sublist3r -d {target_ip}").read())
 
-    curl_output = os.popen(f"curl -I {target_ip}").read()
     output_text.insert(tk.END, "\nServer Headers:\n")
-    output_text.insert(tk.END, curl_output)
+    output_text.insert(tk.END, os.popen(f"curl -I {target_ip}").read())
 
-    robots_output = os.popen(f"curl {target_ip}/robots.txt").read()
     output_text.insert(tk.END, "\nRobots.txt:\n")
-    output_text.insert(tk.END, robots_output)
+    output_text.insert(tk.END, os.popen(f"curl {target_ip}/robots.txt").read())
+
+    progress_bar.stop()
+
+def start_scan():
+    progress_bar.start()
+    threading.Thread(target=scan_target).start()
 
 root = tk.Tk()
 root.title("Target Scanner")
@@ -46,8 +49,11 @@ label_ip.pack()
 entry_ip = tk.Entry(root)
 entry_ip.pack()
 
-button_scan = tk.Button(root, text="Scan", command=scan_target)
+button_scan = tk.Button(root, text="Scan", command=start_scan)
 button_scan.pack()
+
+progress_bar = ttk.Progressbar(root, orient="horizontal", length=200, mode="indeterminate")
+progress_bar.pack()
 
 output_text = tk.Text(root, height=20, width=50)
 output_text.pack()
